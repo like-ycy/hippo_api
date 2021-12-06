@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
-import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -136,64 +135,70 @@ STATIC_URL = '/static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # 日志配置
+# https://docs.djangoproject.com/zh-hans/3.2/topics/logging/
 LOGGING = {
-    'version': 1,  # 使用的python内置的logging模块，那么python可能会对它进行升级，所以需要写一个版本号，目前就是1版本
-    'disable_existing_loggers': False,  # 是否去掉目前项目中其他地方中以及使用的日志功能，但是将来我们可能会引入第三方的模块，里面可能内置了日志功能，所以尽量不要关闭。
-    'formatters': {  # 日志记录格式
-        'verbose': {  # levelname等级，asctime记录时间，module表示日志发生的文件名称，lineno行号，message错误信息
-            'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s'
+    'version': 1,  # 使用的日志模块的版本，目前官方提供的只有版本1，但是官方有可能会升级，为了避免升级出现的版本问题，所以这里固定为1
+    'disable_existing_loggers': False,  # 是否禁用其他的已经存在的日志功能？肯定不能，有可能有些第三方模块在调用，所以禁用了以后，第三方模块无法捕获自身出现的异常了。
+    'formatters': {  # 日志格式设置，verbose或者simple都是自定义的
+        'verbose': {  # 详细格式，适合用于开发人员不在场的情况下的日志记录。
+            # 格式定义：https://docs.python.org/3/library/logging.html#logrecord-attributes
+            # levelname 日志等级
+            # asctime   发生时间
+            # module    文件名
+            # process   进程ID
+            # thread    线程ID
+            # message   异常信息
+            'format': '{levelname} {asctime} {module} {funcName} {process:d} {thread:d} {message}',
+            'style': '{',  # 变量格式分隔符
         },
-        'simple': {
-            'format': '%(levelname)s %(module)s %(lineno)d %(message)s'
+        'simple': {  # 简单格式，适合用于开发人员在场的情况下的终端输出
+            'format': '{levelname} {module} {funcName} {message}',
+            'style': '{',
         },
     },
-    'filters': {  # 过滤器：可以对日志进行输出时的过滤用的
-        'require_debug_true': {  # 在debug=True下产生的一些日志信息，要不要记录日志，需要的话就在handlers中加上这个过滤器，不需要就不加
+    'filters': {  # 过滤器
+        'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
         },
-        'require_debug_false': {  # 和上面相反
-            '()': 'django.utils.log.RequireDebugFalse',
-        },
     },
-    'handlers': {  # 日志处理方式，日志实例
-        'console': {  # 在控制台输出时的实例
-            'level': 'DEBUG',  # 日志等级；debug是最低等级，那么只要比它高等级的信息都会被记录
-            'filters': ['require_debug_true'],  # 在debug=True下才会打印在控制台
-            'class': 'logging.StreamHandler',  # 使用的python的logging模块中的StreamHandler来进行输出
-            'formatter': 'simple'
+    'handlers': {  # 日志处理流程，console或者mail_admins都是自定义的。
+        'console': {
+            'level': 'DEBUG',  # 设置当前日志处理流程中的日志最低等级
+            'filters': ['require_debug_true'],  # 当前日志处理流程的日志过滤
+            'class': 'logging.StreamHandler',  # 当前日志处理流程的核心类，StreamHandler可以帮我们把日志信息输出到终端下
+            'formatter': 'simple'  # 当前日志处理流程的日志格式
         },
+        # 'mail_admins': {
+        #     'level': 'ERROR',                  # 设置当前日志处理流程中的日志最低等级
+        #     'class': 'django.utils.log.AdminEmailHandler',  # AdminEmailHandler可以帮我们把日志信息输出到管理员邮箱中。
+        #     'filters': ['special']             # 当前日志处理流程的日志过滤
+        # }
+        # 按文件大小来分割日志
         'file': {
-            'level': 'INFO',
+            'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            # 日志位置,日志文件名,日志保存目录必须手动创建
-            'filename': os.path.join(os.path.dirname(BASE_DIR), "logs/hippoapi.log"),  # 注意，你的文件应该有读写权限。
-            # 日志文件的最大值,这里我们设置300M
+            # 日志位置,日志文件名，日志保存目录logs必须手动创建
+            'filename': BASE_DIR.parent / "logs/hippo.log",
+            # 单个日志文件的最大值，这里我们设置300M
             'maxBytes': 300 * 1024 * 1024,
-            # 日志文件的数量,设置最大日志数量为10
-            'backupCount': 10,
-            # 日志格式:详细格式
-            'formatter': 'verbose',
-            'encoding': 'utf-8',  # 设置默认编码，否则打印出来汉字乱码
+            # 备份日志文件的数量，设置最大日志数量为10
+            'backupCount': 20,
+            # 日志格式: 详细格式
+            'formatter': 'verbose'
         },
     },
-    # 日志对象
-    'loggers': {
-        'django': {  # 和django结合起来使用，将django中之前的日志输出内容的时候，按照我们的日志配置进行输出，
-            'handlers': ['console', 'file'],  # 将来项目上线，把console去掉
-            'propagate': True,
-            # 冒泡：是否将日志信息记录冒泡给其他的日志处理系统，工作中都是True，不然django这个日志系统捕获到日志信息之后，其他模块中可能也有日志记录功能的模块，就获取不到这个日志信息了
+    'loggers': {  # 日志处理的命名空间
+        'django': {  # 要在django中调用当前配置项的loging写入日志到文件中，名字必须叫"django"
+            'handlers': ['console', 'file'],  # 当基于django命名空间写入日志时，调用那几个日志处理流程
+            'propagate': True,  # 是否在django命名空间对应的日志处理流程结束以后，冒泡通知其他的日志功能。True表示允许
         },
     }
 }
 
 REST_FRAMEWORK = {
     # 异常处理
-    'EXCEPTION_HANDLER': 'hippo_api.utils.exceptions.custom_exception_handler',
+    'EXCEPTION_HANDLER': 'hippoapi.utils.exceptions.exception_handler',
 }
 
-# CORS组的配置信息
-CORS_ORIGIN_WHITELIST = (
-    # 'www.hippo.cn:8080', #如果这样写不行的话，就加上协议(http://www.hippo.cn:8080，因为不同的corsheaders版本可能有不同的要求)
-    'http://www.hippo.cn:8080',
-)
-CORS_ALLOW_CREDENTIALS = False  # 是否允许ajax跨域请求时携带cookie，False表示不用，我们后面也用不到cookie，所以关掉它就可以了，以防有人通过cookie来搞我们的网站
+# CORS的配置信息
+CORS_ALLOW_ALL_ORIGINS = True

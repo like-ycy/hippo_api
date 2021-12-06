@@ -1,6 +1,7 @@
 import logging
 
 from django.db import DatabaseError
+from redis.exceptions import RedisError
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import exception_handler
@@ -8,7 +9,7 @@ from rest_framework.views import exception_handler
 logger = logging.getLogger('django')
 
 
-def custom_exception_handler(exc, context):
+def exception_handler(exc, context):
     """
     自定义异常处理
     :param exc: 异常类
@@ -24,5 +25,7 @@ def custom_exception_handler(exc, context):
             # 数据库异常
             logger.error('[%s] %s' % (view, exc))
             response = Response({'message': '服务器内部错误'}, status=status.HTTP_507_INSUFFICIENT_STORAGE)
-
+        elif isinstance(exc, RedisError):
+            logger.error('redis操作异常！[%s] %s' % (view, exc))
+            response = Response({'errmsg': '服务器内部错误'}, status=status.HTTP_507_INSUFFICIENT_STORAGE)
     return response
