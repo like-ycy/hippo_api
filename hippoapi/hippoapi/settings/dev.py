@@ -224,6 +224,7 @@ JWT_AUTH = {
     # 如果内部站点，例如：运维开发系统，OA，往往配置的access_token有效期基本就是15分钟，30分钟，1~2个小时
     # 'JWT_EXPIRATION_DELTA': datetime.timedelta(weeks=1),  # 一周有效，
     'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),  # 1小时有效，
+    'JWT_ALLOW_REFRESH': True,  # 这个参数要改True，才能刷新token
 }
 
 # CORS的配置信息
