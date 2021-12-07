@@ -9,11 +9,16 @@ https://docs.djangoproject.com/en/3.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.2/ref/settings/
 """
-
+import datetime
+import sys
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# 新增apps作为导包路径，导包路径默认保存sys.path属性中，所有的python的import或者from导包语句默认都是从sys.path中记录的路径下查找模块
+sys.path.insert(0, str(BASE_DIR / "apps"))
+sys.path.insert(0, str(BASE_DIR / "utils"))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/3.2/howto/deployment/checklist/
@@ -24,11 +29,12 @@ SECRET_KEY = 'django-insecure-^o2cym!biygz$4v!vx8*_$)o+d1@9dan@2zgsawh0l7a4-hl-3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
 INSTALLED_APPS = [
+    'simpleui',  # admin界面美化,必须写在admin上面
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -39,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'corsheaders',
 
+    'users',
 ]
 
 MIDDLEWARE = [
@@ -114,20 +121,25 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/3.2/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-Hans'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
 
 USE_L10N = True
 
-USE_TZ = True
+USE_TZ = False
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.2/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# 设置django的静态文件目录[手动创建]
+STATICFILES_DIRS = [
+    BASE_DIR / "static",
+]
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
@@ -196,9 +208,46 @@ LOGGING = {
 }
 
 REST_FRAMEWORK = {
-    # 异常处理
+    # 自定义异常处理
     'EXCEPTION_HANDLER': 'hippoapi.utils.exceptions.exception_handler',
+    # 自定义认证
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_jwt.authentication.JSONWebTokenAuthentication',  # jwt认证
+        'rest_framework.authentication.SessionAuthentication',  # session认证
+        'rest_framework.authentication.BasicAuthentication',
+    ),
+}
+
+# jwt认证相关配置项
+JWT_AUTH = {
+    # 设置jwt的有效期
+    # 如果内部站点，例如：运维开发系统，OA，往往配置的access_token有效期基本就是15分钟，30分钟，1~2个小时
+    # 'JWT_EXPIRATION_DELTA': datetime.timedelta(weeks=1),  # 一周有效，
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(hours=1),  # 1小时有效，
 }
 
 # CORS的配置信息
 CORS_ALLOW_ALL_ORIGINS = True
+
+# 使用自定义模型类
+AUTH_USER_MODEL = 'users.User'
+
+# admin站点公共配置
+from django.contrib import admin
+
+admin.AdminSite.site_header = 'Hippo运维平台'
+admin.AdminSite.site_title = 'Hippo运维平台后台站点'
+
+# 登录界面logo
+SIMPLEUI_LOGO = '/static/logo.png'
+# 快速操作
+SIMPLEUI_HOME_QUICK = True
+# 服务器信息
+SIMPLEUI_HOME_INFO = True
+
+# 关闭simpleui内置的使用分析
+SIMPLEUI_ANALYSIS = False
+# 离线模式
+SIMPLEUI_STATIC_OFFLINE = True
+# 首页图标地址
+SIMPLEUI_INDEX = 'http://www.hippog.cn:3000/'
