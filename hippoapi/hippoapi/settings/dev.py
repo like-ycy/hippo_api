@@ -13,6 +13,8 @@ import datetime
 import sys
 from pathlib import Path
 
+from django.contrib import admin
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -234,8 +236,6 @@ CORS_ALLOW_ALL_ORIGINS = True
 AUTH_USER_MODEL = 'users.User'
 
 # admin站点公共配置
-from django.contrib import admin
-
 admin.AdminSite.site_header = 'Hippo运维平台'
 admin.AdminSite.site_title = 'Hippo运维平台后台站点'
 
@@ -252,3 +252,21 @@ SIMPLEUI_ANALYSIS = False
 SIMPLEUI_STATIC_OFFLINE = True
 # 首页图标地址
 SIMPLEUI_INDEX = 'http://www.hippog.cn:3000/'
+
+# 腾讯云API接口配置
+TENCENTCLOUD = {
+    # 腾讯云访问秘钥ID
+    "SecretId": "AKIDhANKzOWNxHK6bqpXy81dy2pLaYGhqjLh",
+    # 腾讯云访问秘钥key
+    "SecretKey": "6vTlmWzC7l8E3bssc5IDsGNDn79uOdbJ",
+    # 验证码API配置
+    "Captcha": {
+        "endpoint": "captcha.tencentcloudapi.com",  # 验证码校验服务端域名
+        "CaptchaType": 9,  # 验证码类型，固定为9
+        "CaptchaAppId": 2015788886,  # 验证码应用ID
+        "AppSecretKey": "0ThRRd_raZdY0ddETxNfcpQ**",  # 验证码应用key
+    },
+}
+
+# 单元测试单独配置文件配置此项，跳过滑动验证码
+IS_TEST = False
