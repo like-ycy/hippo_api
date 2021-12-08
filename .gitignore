@@ -132,6 +132,7 @@ dmypy.json
 .vscode/
 .git/
 **/migrations/*.py
+**/settings/*.py
 
 
 
