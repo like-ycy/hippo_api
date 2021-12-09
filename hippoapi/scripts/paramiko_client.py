@@ -1,17 +1,27 @@
+from io import StringIO
+
 import paramiko
+from paramiko.rsakey import RSAKey
 from paramiko.ssh_exception import AuthenticationException
 
 """
 prarmiko client 模式， 相当于 ssh root@192.168.174.23 'pwd'
 """
+pkey = open(('/home/wang/.ssh/id_rsa'), 'r').read()
+
 ssh = paramiko.SSHClient()
 ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 try:
-    ssh.connect(hostname='192.168.174.23', username='root', password='123.com')
-    stdin, stdout, stderr = ssh.exec_command('pwd')
-    result = stdout.read().decode()
-    print(result)
+    # 1、密码连接
+    # ssh.connect(hostname='192.168.174.23', username='root', password='123.com')
+    # 2、秘钥连接
+    pkey = RSAKey.from_private_key(StringIO(pkey))
+    ssh.connect(hostname='192.168.174.23', username='root', pkey=pkey)
+    stdin, stdout, stderr = ssh.exec_command('ls -al')
+    result = stdout.read()
+    print(result.decode())
     ssh.close()
 except AuthenticationException as e:
     print(str(e))
     print('连接失败，请检查参数是否正确！')
+#
