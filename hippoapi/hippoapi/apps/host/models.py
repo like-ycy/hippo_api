@@ -33,6 +33,11 @@ class Host(BaseModel):
     def __str__(self):
         return self.name + ':' + self.ip_addr
 
+    def get_ssh(self, pkey=None):
+        # 获取ssh连接对象
+        # pkey = pkey or self.pkey
+        return SSH(self.ip_addr, self.port, self.username, pkey)
+
 
 class PkeyModel(BaseModel):
     """

@@ -1,5 +1,9 @@
+from django.conf import settings
 from rest_framework import serializers
 
+from hippoapi.utils.check_ssh import valid_ssh
+from hippoapi.utils.key import AppSetting
+from hippoapi.utils.ssh import SSH
 from .models import HostCategory, Host
 
 
@@ -26,7 +30,11 @@ class HostModelSerializers(serializers.ModelSerializer):
         port = attrs.get('port')
         username = attrs.get('username')
         password = attrs.get('password')
-        # todo 验证主机信息是否正确
+
+        # 验证主机信息是否正确
+        ret = valid_ssh(ip_addr, port, username, password)
+        if not ret:
+            raise serializers.ValidationError('主机信息错误')
         return attrs
 
     def create(self, validated_data):
@@ -36,10 +44,26 @@ class HostModelSerializers(serializers.ModelSerializer):
         username = validated_data.get('username')
         password = validated_data.get('password')
 
-        # todo 生成公私钥和管理主机的公私钥
+        # 生成公私钥和管理主机的公私钥
+        # 创建公私钥之前，我们先看看之前是否已经创建过公私钥了
+        _cli = SSH(ip_addr, port, username, password=str(password))
+        try:
+            # 尝试从数据库中提取公私钥
+            private_key, public_key = AppSetting.get(settings.DEFAULT_KEY_NAME)
+        except KeyError as e:
+            # 没有公私钥存储到数据库中，则生成公私钥
+            private_key, public_key = _cli.generate_key()
+            # 将公钥和私钥保存到数据库中
+            AppSetting.set(settings.DEFAULT_KEY_NAME, private_key, public_key, 'ssh全局秘钥对')
+
+        # 上传公钥到远程主机
+        try:
+            _cli.add_public_key(public_key)
+        except Exception as e:
+            raise serializers.ValidationError('添加远程主机失败，请检查输入的主机信息!')
 
         # 剔除密码字段，保存host记录
-        password = validated_data.pop('password')
+        validated_data.pop('password')
         instance = Host.objects.create(
             **validated_data
         )
