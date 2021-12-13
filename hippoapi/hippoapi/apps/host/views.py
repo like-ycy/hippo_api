@@ -27,12 +27,23 @@ class HostCategoryListAPIView(ListAPIView, CreateAPIView):
 
 class HostModelViewSet(ModelViewSet):
     """主机信息(查看和创建、修改、删除)"""
-    queryset = Host.objects.all()
+    # queryset = Host.objects.all()
     serializer_class = HostModelSerializers
     permission_classes = [IsAuthenticated]
 
-    # def get_queryset(self):
-    # category_id = self.request.query_params.get("category_id", None)
+    def get_queryset(self):
+        # 重写qureyset方法，补充过滤主机列表参数，获取主机列表
+        category_id = self.request.query_params.get("category_id", None)
+        environment_id = self.request.query_params.get("env", None)
+        queryset = Host.objects
+        # 有分类的查询参数，则按分类来查询
+        if category_id is not None:
+            queryset = queryset.filter(category_id=category_id)
+        # 有环境的查询参数，则按环境来查询
+        if environment_id is not None:
+            queryset = queryset.filter(environment_id=environment_id)
+
+        return queryset.all()
 
 
 class HostExcelView(APIView):
