@@ -20,4 +20,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('users/', include('users.urls')),
     path('host/', include('host.urls')),
+    path('mtask/', include('mtask.urls')),
+    path('conf_center/', include('conf_center.urls')),
 ]
