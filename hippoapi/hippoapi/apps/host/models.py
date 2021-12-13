@@ -1,4 +1,6 @@
+from conf_center.models import Environment
 from hippoapi.utils.models import BaseModel, models
+from ssh import SSH
 from users.models import User
 
 
@@ -24,6 +26,7 @@ class Host(BaseModel):
     port = models.IntegerField(verbose_name='端口')
     username = models.CharField(max_length=50, verbose_name='登录用户')
     users = models.ManyToManyField(User)
+    environment = models.ForeignKey(Environment, on_delete=models.DO_NOTHING, default=1, verbose_name='从属环境')
 
     class Meta:
         db_table = 'hp_host'
