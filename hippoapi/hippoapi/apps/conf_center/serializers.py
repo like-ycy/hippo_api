@@ -7,4 +7,3 @@ class EnvironmentModelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Environment
         fields = ["id", "name", "tag", "description"]
-        # fields = "__all__"
