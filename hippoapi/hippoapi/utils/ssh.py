@@ -7,19 +7,29 @@ from paramiko.ssh_exception import AuthenticationException, SSHException
 
 
 class SSH():
-    def __init__(self, hostname, username, password=None, pkey=None, port=SSH_PORT, connect_timeout=30):
+    def __init__(self, hostname, port=SSH_PORT, username='root', pkey=None, password=None, connect_timeout=30):
         self.client = None
         self.connect_timeout = connect_timeout
-        if self.password is not None and self.pkey is not None:
-            raise SSHException('私钥或者密码必须有一个不为空')
-        self.arguments = {
-            'hostname': hostname,
-            'port': port,
-            'username': username,
-            'password': password,
-            'pkey': RSAKey.from_private_key(StringIO(pkey)) if isinstance(pkey, str) else pkey,
-            'timeout': connect_timeout,
-        }
+        if password is None and pkey is None:
+            raise SSHException("密码和私钥必须有一个")
+        if password is not None:
+            self.arguments = {
+                'hostname': hostname,
+                'port': port,
+                'username': username,
+                'password': password,
+                'timeout': connect_timeout,
+            }
+        else:
+            pkey = RSAKey.from_private_key(StringIO(pkey))
+            self.arguments = {
+                'hostname': hostname,
+                'port': port,
+                'username': username,
+                'password': password,
+                'pkey': pkey,
+                'timeout': connect_timeout,
+            }
 
     @staticmethod
     def generate_key():
@@ -28,10 +38,12 @@ class SSH():
         key = RSAKey.generate(2048)
         key.write_private_key(key_obj)
         # 返回值是一个元祖，两个成员分别是私钥和公钥
-        return key_obj.getvalue(), 'ssh-rsa ' + key.get_base64()
+        return key_obj.getvalue(), 'ssh-rsa ' + key.get_base64
 
     def add_public_key(self, public_key):
         # 添加公钥
+        # 创建目录，如果远程主机有了.ssh目录，则不会像手动执行那样报错停止命令，会接着执行添加公钥命令
+        # 我也不晓得为啥不报错，另外单独用一个测试文件测试确实不报错
         command = f'mkdir -p -m 700 ~/.ssh && \
         echo {public_key!r} >> ~/.ssh/authorized_keys && \
         chmod 600 ~/.ssh/authorized_keys'

@@ -10,10 +10,9 @@ class AppSetting():
     @lru_cache(maxsize=64)
     def get(cls, name):
         """获取秘钥对"""
-        info = PkeyModel.objects.filter(name=name).first
+        info = PkeyModel.objects.filter(name=name).first()
         if not info:
             raise KeyError(f'没有这个 {name!r} 秘钥对')
-
         # 以元组格式，返回公私钥
         return (info.private, info.public)
 

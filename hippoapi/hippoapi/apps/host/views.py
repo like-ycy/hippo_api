@@ -12,7 +12,7 @@ from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.viewsets import ViewSet
 
-from hippoapi.utils.key import AppSetting
+from utils.key import AppSetting
 from .models import HostCategory, Host
 from .serializers import HostCategoryModelSeiralizer, HostModelSerializers
 from .utils import read_host_excel_data
@@ -52,7 +52,7 @@ class HostExcelView(APIView):
     def post(self, request):
         """从excel批量导入主机列表"""
         # 获取上传的文件
-        host_excel = request.deta.get('host[]')
+        host_excel = request.data.get('host[]')
         default_password = request.data.get("default_password")
 
         # 把上传文件全部写入到字节流，就不需要保存到服务端硬盘了。
