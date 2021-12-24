@@ -22,4 +22,7 @@ urlpatterns = [
     path('host/', include('host.urls')),
     path('mtask/', include('mtask.urls')),
     path('conf_center/', include('conf_center.urls')),
+    path('release/', include('release.urls')),
+    path('schedule/', include('schedule.urls')),
+    path('monitor/', include('monitor.urls')),
 ]
