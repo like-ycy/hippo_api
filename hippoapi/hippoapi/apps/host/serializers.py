@@ -23,7 +23,8 @@ class HostModelSerializers(serializers.ModelSerializer):
 
     class Meta:
         model = Host
-        fields = ['id', 'category', 'category_name', 'name', 'ip_addr', 'port', 'description', 'username', 'password']
+        fields = ['id', 'category', 'category_name', 'environment', 'name', 'ip_addr', 'port', 'description',
+                  'username', 'password']
 
     def validate(self, attrs):
         """当用户添加、编辑主机信息会自动执行这个方法"""
